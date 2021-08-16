@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:yellow_movies/models/Movie.dart';
+import 'package:yellow_movies/redux/actions.dart';
+import 'package:yellow_movies/redux/app_state.dart';
 import 'package:yellow_movies/services/MovieService.dart';
 import 'package:yellow_movies/models/MovieInfo.dart';
 import 'package:yellow_movies/components/PaddedText.dart';
@@ -21,37 +25,45 @@ class MovieDetail extends StatelessWidget {
             if (snapshot.hasData) {
               return Container(
                   padding: EdgeInsets.all(20),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Container(
-                          padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
-                          alignment: Alignment.center,
-                          child: Image.network(
-                            snapshot.data!.poster,
-                            width: 200,
+                  child: StoreConnector<AppState, List<MovieInfo>>(
+                    converter: (store) => store.state.movies,
+                    builder: (context, List<MovieInfo> stateMyMovies) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Container(
+                            padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                            alignment: Alignment.center,
+                            child: Image.network(
+                              snapshot.data!.poster,
+                              width: 200,
+                            ),
                           ),
-                        ),
-                        Text(snapshot.data!.plot, textAlign: TextAlign.justify),
-                        PaddedText("Year : " + snapshot.data!.year),
-                        PaddedText("Genre : " + snapshot.data!.genre),
-                        PaddedText("Directed by : " + snapshot.data!.director),
-                        PaddedText("Runtime : " + snapshot.data!.runtime),
-                        PaddedText("Rated : " + snapshot.data!.rating),
-                        PaddedText(
-                            "IMDB Rating : " + snapshot.data!.imdbRating),
-                        PaddedText("Meta Score : " + snapshot.data!.metaScore),
-                        FloatingActionButton.extended(
-                          backgroundColor: const Color(0xff03dac6),
-                          foregroundColor: Colors.black,
-                          onPressed: () {
-                            // Respond to button press
-                            // storeWatched(this.imdbId);
-                          },
-                          icon: Icon(Icons.add),
-                          label: Text('Add to watched list'),
-                        ),
-                      ]));
+                          Text(snapshot.data!.plot,
+                              textAlign: TextAlign.justify),
+                          PaddedText("Year : " + snapshot.data!.year),
+                          PaddedText("Genre : " + snapshot.data!.genre),
+                          PaddedText(
+                              "Directed by : " + snapshot.data!.director),
+                          PaddedText("Runtime : " + snapshot.data!.runtime),
+                          PaddedText("Rated : " + snapshot.data!.rating),
+                          PaddedText(
+                              "IMDB Rating : " + snapshot.data!.imdbRating),
+                          PaddedText(
+                              "Meta Score : " + snapshot.data!.metaScore),
+                          FloatingActionButton.extended(
+                            backgroundColor: const Color(0xff03dac6),
+                            foregroundColor: Colors.black,
+                            onPressed: () {
+                              // Respond to button press
+                              // storeWatched(this.imdbId);
+                              StoreProvider.of<AppState>(context)
+                                  .dispatch(UpdateMoviesAction(snapshot.data!));
+                            },
+                            icon: Icon(Icons.add),
+                            label: Text('Add to watched list'),
+                          ),
+                        ]),
+                  ));
             } else if (snapshot.hasError) {
               return Text("${snapshot.error}");
             }
